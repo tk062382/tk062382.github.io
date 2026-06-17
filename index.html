@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デジタルおみくじ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h1>デジタルおみくじ</h1>
+  <p class="subtitle">— Digital Fortune —</p>
+  <div id="fortune-box" class="fortune-box">
+    <div id="result">
+      <div id="fortune-level" class="fortune-level">🔮</div>
+      <div id="fortune-text" class="fortune-text initial-text">ボタンを押して<br>おみくじを引きましょう</div>
+      <div id="fortune-categories" class="fortune-categories hidden">
+        <div class="cat-row"><span class="cat-label">健康運</span><span class="cat-value" id="cat-health"></span></div>
+        <div class="cat-row"><span class="cat-label">恋愛運</span><span class="cat-value" id="cat-love"></span></div>
+        <div class="cat-row"><span class="cat-label">学業運</span><span class="cat-value" id="cat-work"></span></div>
+        <div class="cat-row"><span class="cat-label">金運</span><span class="cat-value" id="cat-money"></span></div>
+      </div>
+      <div class="seal">開運</div>
+    </div>
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>おみくじを引いています...</p>
+    </div>
+  </div>
+  <button id="draw-btn" class="draw-btn">おみくじを引く</button>
+  <div id="error-msg" class="error hidden"></div>
+</div>
+<script src="config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

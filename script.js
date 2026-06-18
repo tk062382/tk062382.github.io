@@ -86,14 +86,14 @@ async function callGemini(fortune) {
 
   const body = {
     system_instruction: {
-      parts: [{ text: 'おみくじ占い師。以下の4項目を「健康：…\n恋愛：…\n学業：…\n金運：…」の形式で出力。各40字以内。余計な説明不要。' }]
+      parts: [{ text: '健康・恋愛・学業・金運を各1行で短く出力。' }]
     },
     contents: [
-      { role: 'user', parts: [{ text: `${fortune.level}の運勢を教えて` }] }
+      { role: 'user', parts: [{ text: fortune.level }] }
     ],
     generationConfig: {
       temperature: 0.9,
-      maxOutputTokens: 6000,
+      maxOutputTokens: 320,
       responseMimeType: 'text/plain',
     },
   };
@@ -199,12 +199,6 @@ function init() {
     }
 
     const fortune = pickFortune();
-    const cached = getCache();
-    if (cached && cached.fortune.level === fortune.level) {
-      showFortune(cached.fortune, cached.text);
-      lastDrawTime = now;
-      return;
-    }
 
     fortuneBox.classList.add('shaking');
     setTimeout(() => fortuneBox.classList.remove('shaking'), 500);
@@ -215,7 +209,6 @@ function init() {
 
     try {
       const text = await callGemini(fortune);
-      setCache(fortune, text);
       showFortune(fortune, text);
     } catch (e) {
       showError(e.message);

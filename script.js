@@ -89,7 +89,7 @@ async function callGemini(fortune) {
     ],
     generationConfig: {
       temperature: 0.9,
-      maxOutputTokens: 600,
+      maxOutputTokens: 300,
       responseMimeType: 'text/plain',
     },
   };

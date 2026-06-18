@@ -11,6 +11,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       contents: write
       pages: write
@@ -20,8 +23,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create config.js from secret
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          echo "const GEMINI_API_KEY = '${{ secrets.GEMINI_API_KEY }}';" > config.js
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "Missing GitHub Secret: GEMINI_API_KEY" >&2
+            exit 1
+          fi
+
+          printf "const GEMINI_API_KEY = '%s';\n" "$GEMINI_API_KEY" > config.js
 
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3

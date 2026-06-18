@@ -86,7 +86,7 @@ async function callGemini(fortune) {
 
   const body = {
     system_instruction: {
-      parts: [{ text: '健康・恋愛・学業・金運を各1行で短く出力。' }]
+      parts: [{ text: '健康・恋愛・学業・金運を各1行、40文字以下で短く出力。' }]
     },
     contents: [
       { role: 'user', parts: [{ text: fortune.level }] }

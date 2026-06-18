@@ -1,1 +1,1 @@
-const GEMINI_API_KEY = 'dummy';
+const GEMINI_API_KEY = '';

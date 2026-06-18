@@ -21,22 +21,23 @@ const CONFIG = {
 
 const CACHE_KEY = 'omikuji_cache';
 
-const $ = id => document.getElementById(id);
-const resultDiv = $('result');
-const loadingDiv = $('loading');
-const fortuneLevel = $('fortune-level');
-const fortuneText = $('fortune-text');
-const drawBtn = $('draw-btn');
-const errorMsg = $('error-msg');
-const seal = document.querySelector('.seal');
-const fortuneBox = $('fortune-box');
-const categoriesEl = $('fortune-categories');
-const catHealth = $('cat-health');
-const catLove = $('cat-love');
-const catWork = $('cat-work');
-const catMoney = $('cat-money');
-
 let lastDrawTime = 0;
+
+const $ = id => document.getElementById(id);
+
+let resultDiv;
+let loadingDiv;
+let fortuneLevel;
+let fortuneText;
+let drawBtn;
+let errorMsg;
+let seal;
+let fortuneBox;
+let categoriesEl;
+let catHealth;
+let catLove;
+let catWork;
+let catMoney;
 
 function pickFortune() {
   const total = CONFIG.fortunes.reduce((s, f) => s + f.weight, 0);
@@ -77,6 +78,9 @@ function jitter() {
 
 async function callGemini(fortune) {
   const apiKey = GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('APIキーが設定されていません。config.js の GEMINI_API_KEY を設定してください。');
+  }
   const model = pickModel();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -89,7 +93,7 @@ async function callGemini(fortune) {
     ],
     generationConfig: {
       temperature: 0.9,
-      maxOutputTokens: 300,
+      maxOutputTokens: 600,
       responseMimeType: 'text/plain',
     },
   };
@@ -166,37 +170,64 @@ function showError(msg) {
   loadingDiv.classList.add('hidden');
 }
 
-drawBtn.addEventListener('click', async () => {
-  const now = Date.now();
-  if (now - lastDrawTime < CONFIG.cooldownMs) {
-    const remaining = Math.ceil((CONFIG.cooldownMs - (now - lastDrawTime)) / 1000);
-    showError(`少し待ってください（あと${remaining}秒）`);
+function init() {
+  resultDiv = $('result');
+  loadingDiv = $('loading');
+  fortuneLevel = $('fortune-level');
+  fortuneText = $('fortune-text');
+  drawBtn = $('draw-btn');
+  errorMsg = $('error-msg');
+  seal = document.querySelector('.seal');
+  fortuneBox = $('fortune-box');
+  categoriesEl = $('fortune-categories');
+  catHealth = $('cat-health');
+  catLove = $('cat-love');
+  catWork = $('cat-work');
+  catMoney = $('cat-money');
+
+  if (!drawBtn) {
+    console.error('draw button not found');
     return;
   }
 
-  const fortune = pickFortune();
-  const cached = getCache();
-  if (cached && cached.fortune.level === fortune.level) {
-    showFortune(cached.fortune, cached.text);
+  drawBtn.addEventListener('click', async () => {
+    const now = Date.now();
+    if (now - lastDrawTime < CONFIG.cooldownMs) {
+      const remaining = Math.ceil((CONFIG.cooldownMs - (now - lastDrawTime)) / 1000);
+      showError(`少し待ってください（あと${remaining}秒）`);
+      return;
+    }
+
+    const fortune = pickFortune();
+    const cached = getCache();
+    if (cached && cached.fortune.level === fortune.level) {
+      showFortune(cached.fortune, cached.text);
+      lastDrawTime = now;
+      return;
+    }
+
+    fortuneBox.classList.add('shaking');
+    setTimeout(() => fortuneBox.classList.remove('shaking'), 500);
+
+    showLoading();
+    drawBtn.disabled = true;
     lastDrawTime = now;
-    return;
-  }
 
-  fortuneBox.classList.add('shaking');
-  setTimeout(() => fortuneBox.classList.remove('shaking'), 500);
+    try {
+      const text = await callGemini(fortune);
+      setCache(fortune, text);
+      showFortune(fortune, text);
+    } catch (e) {
+      showError(e.message);
+      lastDrawTime = 0;
+    } finally {
+      drawBtn.disabled = false;
+    }
+  });
+}
 
-  showLoading();
-  drawBtn.disabled = true;
-  lastDrawTime = now;
-
-  try {
-    const text = await callGemini(fortune);
-    setCache(fortune, text);
-    showFortune(fortune, text);
-  } catch (e) {
-    showError(e.message);
-    lastDrawTime = 0;
-  } finally {
-    drawBtn.disabled = false;
-  }
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
